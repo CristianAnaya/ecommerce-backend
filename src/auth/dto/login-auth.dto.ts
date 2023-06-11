@@ -5,7 +5,7 @@ export class LoginAuthDto {
     @IsNotEmpty()
     @IsString()
     @IsEmail()
-    email: string;
+    email: string;//TEST
 
     @IsNotEmpty()
     @IsString()
