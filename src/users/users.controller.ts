@@ -1,6 +1,9 @@
 import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { HasRoles } from 'src/auth/jwt/has-role';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { JwtRole } from 'src/auth/jwt/jwt-roles';
+import { JwtRolesGuard } from 'src/auth/jwt/jwt-roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
@@ -10,7 +13,8 @@ export class UsersController {
 
     constructor(private usersService: UsersService) {}
 
-    @UseGuards(JwtAuthGuard)
+    @HasRoles(JwtRole.ADMIN, JwtRole.CLIENT)
+    @UseGuards(JwtAuthGuard, JwtRolesGuard)
     @Get()
     findAll() {
         return this.usersService.findAll();
@@ -20,8 +24,9 @@ export class UsersController {
     create(@Body() user: CreateUserDto) {
         return this.usersService.create(user);
     }
-
-    @UseGuards(JwtAuthGuard)
+    
+    @HasRoles(JwtRole.CLIENT)
+    @UseGuards(JwtAuthGuard, JwtRolesGuard)
     @Post('upload/:id')
     @UseInterceptors(FileInterceptor('file'))
     updateWithImage(
@@ -40,7 +45,8 @@ export class UsersController {
         return this.usersService.updaWithImage(file, id, user);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @HasRoles(JwtRole.CLIENT)
+    @UseGuards(JwtAuthGuard, JwtRolesGuard)
     @Put(':id') // http://localhost/users/:id -> PUT
     update(@Param('id', ParseIntPipe) id: number, @Body() user: UpdateUserDto) {
         return this.usersService.update(id, user);

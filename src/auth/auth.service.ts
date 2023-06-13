@@ -34,14 +34,26 @@ export class AuthService {
         }
 
         const newUser = this.usersRepository.create(user);
+        let rolesIds = [];
 
-        const rolesIds = user.rolesIds;
+        if (user.rolesIds !== undefined && user.rolesIds !== null) {
+             rolesIds = user.rolesIds;
+        }
+        else {
+            rolesIds.push('CLIENT')
+        }
+
         const roles = await this.rolesRepository.findBy({ id: In (rolesIds) })
 
         newUser.roles = roles
         const userSaved = await this.usersRepository.save(newUser);
+        const rolesString = userSaved.roles.map(rol => rol.id);
+        const payload = { 
+            id: userSaved.id,
+             name: userSaved.name,
+             roles: rolesString
+        };
 
-        const payload = { id: userSaved.id, name: userSaved.name };
         const token = this.jwtService.sign(payload);
         const data = {
             user: userSaved,
@@ -63,16 +75,18 @@ export class AuthService {
          })
 
         if (!userFound) {
-            return new HttpException('El email no existe', HttpStatus.NOT_FOUND)
+            throw new HttpException('El email no existe', HttpStatus.NOT_FOUND)
         }
 
         const isPasswordValid = await compare(password, userFound.password)
 
         if (!isPasswordValid) {
-            return new HttpException('la contraseña es incorrecta', HttpStatus.FORBIDDEN)
+            throw new HttpException('la contraseña es incorrecta', HttpStatus.FORBIDDEN)
         }
 
-        const payload = { id: userFound.id, name: userFound.name }
+        const rolesIds = userFound.roles.map(rol => rol.id); // ['CLIENT', 'ADMIN']
+
+        const payload = { id: userFound.id, name: userFound.name, roles: rolesIds }
         const token = this.jwtService.sign(payload)
         const data = {
             user: userFound,
