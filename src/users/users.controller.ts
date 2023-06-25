@@ -27,7 +27,7 @@ export class UsersController {
     
     @HasRoles(JwtRole.CLIENT)
     @UseGuards(JwtAuthGuard, JwtRolesGuard)
-    @Post('upload/:id')
+    @Put('upload/:id')
     @UseInterceptors(FileInterceptor('file'))
     updateWithImage(
         @UploadedFile(
