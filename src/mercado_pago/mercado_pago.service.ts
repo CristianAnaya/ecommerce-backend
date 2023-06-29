@@ -5,6 +5,9 @@ import { AxiosError, AxiosResponse } from 'axios';
 import { response } from 'express';
 import { catchError, map, Observable } from 'rxjs';
 import { MERCADO_PAGO_API, MERCADO_PAGO_HEADERS } from 'src/config/config';
+import { Order } from 'src/orders/order.entity';
+import { OrderHasProducts } from 'src/orders/order_has_products.entity';
+import { Repository } from 'typeorm';
 import { CardTokenBody } from './models/card_token_body';
 import { CardTokenResponse } from './models/card_token_response';
 import { IdentificationType } from './models/identification_type';
@@ -15,7 +18,11 @@ import { PaymentResponse } from './models/payment_response';
 @Injectable()
 export class MercadoPagoService {
 
-    constructor(private readonly httpService: HttpService) {}
+    constructor(
+        private readonly httpService: HttpService,
+        @InjectRepository(Order) private ordersRepository: Repository<Order>,
+        @InjectRepository(OrderHasProducts) private orderHasProductsRepository: Repository<OrderHasProducts>
+        ) {}
 
     getIdentificationTypes(): Observable<AxiosResponse<IdentificationType[]>> {
         return this.httpService.get(MERCADO_PAGO_API + '/identification_types', { headers: MERCADO_PAGO_HEADERS }).pipe(
@@ -44,7 +51,19 @@ export class MercadoPagoService {
         ).pipe(map((resp: AxiosResponse<CardTokenResponse>) => resp.data));
     }
 
-    createPayment(paymentBody: PaymentBody): Observable<PaymentResponse> {
+    async createPayment(paymentBody: PaymentBody): Promise<Observable<PaymentResponse>> {
+        const newOrder = await this.ordersRepository.create(paymentBody.order);
+        const savedOrder= await this.ordersRepository.save(newOrder);
+
+        for(const product of paymentBody.order.products) {
+            const ohp = new OrderHasProducts();
+            ohp.id_order = savedOrder.id;
+            ohp.id_product = product.id;
+            ohp.quantity = product.quantity
+            await this.orderHasProductsRepository.save(ohp)
+        }
+        delete paymentBody.order;
+
         return this.httpService.post(
             MERCADO_PAGO_API + '/payments',
             paymentBody,

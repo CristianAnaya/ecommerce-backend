@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, ManyToMany, JoinT
 import { hash } from 'bcrypt'
 import { Rol } from "src/roles/rol.entity";
 import { Address } from "src/address/address.entity";
+import { Order } from "src/orders/order.entity";
 
 @Entity({ name: 'users' })
 export class User {
@@ -50,6 +51,9 @@ export class User {
 
     @OneToMany(() => Address, (address) => address.id)
     address: Address;
+
+    @OneToMany(() => Order, (order) => order.id)
+    order: Order;
 
     @BeforeInsert()
     async hasPassword() {
