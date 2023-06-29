@@ -4,7 +4,6 @@ import { HasRoles } from 'src/auth/jwt/has-role';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { JwtRole } from 'src/auth/jwt/jwt-roles';
 import { JwtRolesGuard } from 'src/auth/jwt/jwt-roles.guard';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';

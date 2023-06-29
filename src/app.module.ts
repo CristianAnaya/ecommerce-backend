@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
+import { AddressModule } from './address/address.module';
+import { MercadoPagoModule } from './mercado_pago/mercado_pago.module';
 
 @Module({
   imports: [
@@ -25,7 +27,9 @@ import { ProductsModule } from './products/products.module';
     AuthModule,
     RolesModule,
     CategoriesModule,
-    ProductsModule
+    ProductsModule,
+    AddressModule,
+    MercadoPagoModule
   ],
   controllers: [AppController],
   providers: [AppService],
