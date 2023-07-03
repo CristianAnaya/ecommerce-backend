@@ -69,10 +69,12 @@ export class AuthService {
     async login(loginData: LoginAuthDto) {
 
         const { email, password } = loginData
-        const userFound = await this.usersRepository.findOne({ 
-            where: { email: email },
-            relations: ['roles']
-         })
+        const userFound = await this.usersRepository
+                .createQueryBuilder('user')
+                .addSelect('user.password')
+                .where('user.email = :email', { email })
+                .leftJoinAndSelect('user.roles', 'roles')
+                .getOne();
 
         if (!userFound) {
             throw new HttpException('El email no existe', HttpStatus.NOT_FOUND)

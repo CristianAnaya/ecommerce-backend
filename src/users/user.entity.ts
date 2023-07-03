@@ -25,7 +25,7 @@ export class User {
     @Column({ nullable: true })
     image: string;
 
-    @Column()
+    @Column({ select: false })
     password: string;
 
     @Column({ nullable: true })

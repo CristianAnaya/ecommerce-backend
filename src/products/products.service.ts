@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './product.entity';
 import asyncForEach = require('../utils/async_foreach');
 import storage = require('../utils/cloud_storage');
+import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ProductsService {
@@ -18,6 +19,14 @@ export class ProductsService {
 
     findByCategory(id_category: number) {
         return this.productsRepository.findBy({ id_category: id_category })
+    }
+
+    async paginate(options: IPaginationOptions): Promise<Pagination<Product>> {
+        return paginate<Product>(this.productsRepository, options);
+    }
+
+    findByName(name: string) {
+        return this.productsRepository.find({ where : {name: Like(`%${name}%`)}})
     }
 
     async create(files: Array<Express.Multer.File>, product: CreateProductDto) {

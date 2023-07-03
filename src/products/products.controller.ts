@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Put, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Put, Query, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { Pagination } from 'nestjs-typeorm-paginate';
 import { HasRoles } from 'src/auth/jwt/has-role';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { JwtRole } from 'src/auth/jwt/jwt-roles';
 import { JwtRolesGuard } from 'src/auth/jwt/jwt-roles.guard';
+import { API } from 'src/config/config';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Product } from './product.entity';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -20,12 +23,32 @@ export class ProductsController {
         return this.productService.findAll();
     }
 
+    @HasRoles(JwtRole.ADMIN, JwtRole.CLIENT)
+    @UseGuards(JwtAuthGuard, JwtRolesGuard)
+    @Get('pagination') 
+    async pagination(
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+        @Query('limit', new DefaultValuePipe(15), ParseIntPipe) limit: number = 5
+    ): Promise<Pagination<Product>> {
+        return this.productService.paginate({
+            page,
+            limit,
+            route: `http://${API}:3000/products/pagination`
+        });
+    }
 
     @HasRoles(JwtRole.ADMIN, JwtRole.CLIENT)
     @UseGuards(JwtAuthGuard, JwtRolesGuard)
     @Get('category/:id_category') 
     findByCategory(@Param('id_category', ParseIntPipe) id_category: number) {
         return this.productService.findByCategory(id_category);
+    }
+
+    @HasRoles(JwtRole.ADMIN, JwtRole.CLIENT)
+    @UseGuards(JwtAuthGuard, JwtRolesGuard)
+    @Get('search/:name') 
+    findByName(@Param('name') name: string) {
+        return this.productService.findByName(name);
     }
 
     @HasRoles(JwtRole.ADMIN)
